@@ -1,0 +1,21 @@
+namespace GitDevelop.Domain.Entities;
+
+public class Blob
+{
+    public Guid Id { get; private init; }
+    public ContentHash Hash { get; private init; }
+    public long Size { get; private init; }
+    public DateTime CreateAt { get; private init; }
+
+    public Blob(
+        Guid id,
+        ContentHash hash,
+        long size,
+        DateTime createAt)
+    {
+        Id = id;
+        Hash = hash;
+        Size = size;
+        CreateAt = createAt;
+    }
+}
