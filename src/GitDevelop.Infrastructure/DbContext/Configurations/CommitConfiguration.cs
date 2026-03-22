@@ -17,6 +17,7 @@ public sealed class CommitConfiguration : IEntityTypeConfiguration<Commit>
             .HasKey(commit => commit.Id)
             .HasName("pk_commits");
 
+        // properties
         builder
             .Property(commit => commit.Id)
             .HasColumnName("id");
@@ -32,12 +33,12 @@ public sealed class CommitConfiguration : IEntityTypeConfiguration<Commit>
             .IsRequired();
 
         builder
-            .Property(c => c.AuthorId)
+            .Property(commit => commit.AuthorId)
             .HasColumnName("author_id")
             .IsRequired();
 
         builder
-            .Property(branch => branch.CreatedAt)
+            .Property(commit => commit.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
 
@@ -52,11 +53,6 @@ public sealed class CommitConfiguration : IEntityTypeConfiguration<Commit>
             });
 
         builder
-            .HasIndex(commit => commit.Hash.Value)
-            .IsUnique()
-            .HasDatabaseName("ux_commits_hash");
-
-        builder
             .ComplexProperty(commit => commit.Message, propertyBuilder =>
             {
                 propertyBuilder
@@ -66,8 +62,7 @@ public sealed class CommitConfiguration : IEntityTypeConfiguration<Commit>
                     .IsRequired();
             });
 
-        //todo сделоать конфигурацию для ParentId
-
+        // ownerships
         builder
             .HasOne<Repository>()
             .WithMany()
@@ -88,6 +83,20 @@ public sealed class CommitConfiguration : IEntityTypeConfiguration<Commit>
             .HasForeignKey(commit => commit.AuthorId)
             .OnDelete(DeleteBehavior.Restrict)
             .HasConstraintName("fk_commits_author");
+
+        builder.HasMany<Commit>()
+            .WithMany()
+            .UsingEntity<Dictionary<string, object>>(
+                "commit_parents",
+                l => l.HasOne<Commit>().WithMany().HasForeignKey("parent_id"),
+                r => r.HasOne<Commit>().WithMany().HasForeignKey("commit_id"),
+                j => { j.ToTable("commit_parents"); });
+
+        // indexes
+        builder
+            .HasIndex(commit => commit.Hash.Value)
+            .IsUnique()
+            .HasDatabaseName("ux_commits_hash");
 
         builder
             .HasIndex(c => c.RepositoryId)
